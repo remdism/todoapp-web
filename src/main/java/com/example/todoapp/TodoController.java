@@ -37,4 +37,27 @@ public class TodoController {
         // ④ 保存が終わったら、トップページ（/）に自動で移動（リダイレクト）させる
         return "redirect:/";
     }
+    
+    // タスクを完了にする処理
+    @PostMapping("/complete")
+    public String completeTask(@RequestParam int id) {
+        // ① 送られてきたIDをもとに、データベースから対象のタスクを探す
+        Task task = repository.findById(id).orElse(null);
+        
+        if (task != null) {
+            // ② 状態を「完了(true)」に変更して、データベースに上書き保存
+            task.setCompleted(true);
+            repository.save(task);
+        }
+        return "redirect:/";
+    }
+
+    // タスクを削除する処理
+    @PostMapping("/delete")
+    public String deleteTask(@RequestParam int id) {
+        // ① 送られてきたIDのタスクをデータベースから直接削除
+        repository.deleteById(id);
+        
+        return "redirect:/";
+    }
 }

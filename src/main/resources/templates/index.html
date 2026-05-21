@@ -13,15 +13,23 @@
     </form>
     <hr>
 
-    <ul>
-        <li th:each="task : ${tasks}">
-            <span th:text="${task.id}">1</span>: 
-            
-            <span th:if="${task.isCompleted}">[完了]</span>
-            <span th:unless="${task.isCompleted}">[未完了]</span>
-            
-            <span th:text="${task.title}">タスク名</span>
-        </li>
-    </ul>
+	<ul>
+	        <li th:each="task : ${tasks}">
+	            <span th:text="${task.id}">1</span>: 
+	            <span th:if="${task.isCompleted}">[完了]</span>
+	            <span th:unless="${task.isCompleted}">[未完了]</span>
+	            <span th:text="${task.title}">タスク名</span>
+	            
+	            <form action="/complete" method="post" style="display:inline;">
+	                <input type="hidden" name="id" th:value="${task.id}">
+	                <button type="submit" th:disabled="${task.isCompleted}">完了にする</button>
+	            </form>
+	            
+	            <form action="/delete" method="post" style="display:inline;">
+	                <input type="hidden" name="id" th:value="${task.id}">
+	                <button type="submit">削除</button>
+	            </form>
+	        </li>
+	    </ul>
 </body>
 </html>
