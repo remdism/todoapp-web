@@ -5,30 +5,30 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-@Entity // ①このクラスをデータベースのテーブルとして扱う目印です
+@Entity // データベースのテーブル
 public class Task {
     
-    @Id // ②この項目が主キー（Primary Key）であることの宣言です
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // IDを自動で連番（1, 2, 3...）にします
+    @Id // 主キー
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     
     private String title;
     private boolean isCompleted;
 
-    // JPAの仕様上、空のコンストラクタが必須になります
+    // 空のコンストラクタ
     public Task() {}
 
-    // 以前作ったコンストラクタ（IDは自動生成されるため引数から外します）
+    // コンストラクタ
     public Task(String title, boolean isCompleted) {
         this.title = title;
         this.isCompleted = isCompleted;
     }
 
-    // --- 以下のGetterはそのまま残しておきます ---
+    // Getter
     public int getId() { return id; }
     public String getTitle() { return title; }
     public boolean isCompleted() { return isCompleted; }
     
-    // 値を更新するためのSetterも追加しておきます
+    // Setter
     public void setCompleted(boolean completed) { isCompleted = completed; }
 }
