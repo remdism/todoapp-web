@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <title>ToDoアプリ</title>
     <style>
-        /* レイアウトとカレンダーの見た目を整えるCSS */
         .app-container { display: flex; gap: 40px; margin-top: 20px; }
         .main-content { flex: 1; }
         .sidebar { width: 300px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: fit-content; }
         
-        /* 月めくりカレンダーのヘッダー */
         .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }
         .cal-arrow { text-decoration: none; color: #3b82f6; font-size: 24px; }
         
@@ -17,28 +15,40 @@
         .day-name { font-weight: bold; color: #64748b; padding-bottom: 10px; }
         .day-cell { height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; position: relative; color: #334155; }
         
-        /* 今日の日付とタスクありのインジケーター */
         .today { background: #3b82f6; color: white; font-weight: bold; }
+        
+        /* タスクがある日はクリックできるようにカーソルを指マークにする */
+        .has-task { cursor: pointer; transition: background-color 0.2s; }
+        .has-task:hover { background-color: #e2e8f0; } /* マウスを乗せたら少し色を変える */
+        
         .has-task::after {
             content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
             width: 6px; height: 6px; background-color: #ef4444; border-radius: 50%;
         }
         .today.has-task::after { background-color: white; }
+
+        /* ハイライト用CSS*/
+        .task-item { padding: 8px; border-radius: 6px; transition: background-color 0.3s ease; }
+        .highlight { background-color: #fef08a !important; /* 薄い黄色 */ border-left: 4px solid #eab308; }
     </style>
 </head>
 <body>
-    <h1>=== Web版 ToDoアプリ ===</h1>
+    <h1>=== 就活用 ToDoリスト ===</h1>
     
     <div class="app-container">
         <div class="main-content">
-            <form action="/add" method="post">
+            <form action="/add" method="post" style="margin-bottom: 20px;">
                 <input type="text" name="title" placeholder="新しいタスクを入力" required>
                 <input type="date" name="dueDate" required>
                 <button type="submit">追加</button>
             </form>
             <hr>
             <ul>
-                <li th:each="task : ${tasks}" style="margin-bottom: 10px;">
+                <li th:each="task : ${tasks}" 
+                    class="task-item"
+                    th:data-date="${task.dueDate}"
+                    style="margin-bottom: 10px;">
+                    
                     <span th:text="${task.id}"></span>: 
                     <span th:if="${task.isCompleted}">[完了]</span>
                     <span th:unless="${task.isCompleted}">[未完了]</span>
@@ -63,9 +73,7 @@
         <div class="sidebar">
             <div class="cal-header">
                 <a th:href="@{/(year=${prevYear}, month=${prevMonth})}" class="cal-arrow">◀</a>
-                
                 <span th:text="${currentYear} + '年 ' + ${currentMonth} + '月'"></span>
-                
                 <a th:href="@{/(year=${nextYear}, month=${nextMonth})}" class="cal-arrow">▶</a>
             </div>
             
@@ -77,11 +85,40 @@
 
                 <div th:each="day : ${calendarDays}" 
                      class="day-cell"
-                     th:classappend="${day == todayDay ? 'today' : ''} + ' ' + ${hasTaskMap.containsKey(day) ? 'has-task' : ''}">
+                     th:classappend="${day == todayDay ? 'today' : ''} + ' ' + ${hasTaskMap.containsKey(day) ? 'has-task' : ''}"
+                     th:data-date="${day != 0 ? currentYear + '-' + #numbers.formatInteger(currentMonth, 2) + '-' + #numbers.formatInteger(day, 2) : ''}"
+                     onclick="highlightTask(this)">
                     <span th:if="${day != 0}" th:text="${day}"></span>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function highlightTask(calendarCell) {
+            // クリックされたマスの日付を取得
+            const clickedDate = calendarCell.getAttribute('data-date');
+            if (!clickedDate) return; // 空白マスなら何もしない
+
+            // すべてのタスクからハイライトを外す
+            document.querySelectorAll('.task-item').forEach(function(item) {
+                item.classList.remove('highlight');
+            });
+
+            // タスクリストの中から、クリックした日付と同じ日付を持つものを探してハイライトする
+            let found = false;
+            document.querySelectorAll('.task-item').forEach(function(item) {
+                if (item.getAttribute('data-date') === clickedDate) {
+                    item.classList.add('highlight');
+                    found = true;
+                }
+            });
+
+            // もしカレンダーの下の方のタスクが光った場合、自動でスクロールして画面に収める
+            if (found) {
+                document.querySelector('.highlight').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+    </script>
 </body>
 </html>
