@@ -3,36 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <title>ToDoアプリ</title>
+    <style>
+        .app-container { display: flex; gap: 40px; margin-top: 20px; }
+        .main-content { flex: 1; }
+        .sidebar { width: 300px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: fit-content; }
+        .cal-header { text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .day-name { font-weight: bold; color: #64748b; padding-bottom: 10px; }
+        .day-cell { height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; position: relative; color: #334155; }
+        .today { background: #3b82f6; color: white; font-weight: bold; }
+        .has-task::after {
+            content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 6px; background-color: #ef4444; border-radius: 50%;
+        }
+        .today.has-task::after { background-color: white; /* 今日のマスにタスクがある場合は丸を白に */ }
+    </style>
 </head>
 <body>
     <h1>=== Web版 ToDoアプリ ===</h1>
+    
+    <div class="app-container">
+        <div class="main-content">
+            <form action="/add" method="post">
+                <input type="text" name="title" placeholder="新しいタスクを入力" required>
+                <input type="date" name="dueDate" required>
+                <button type="submit">追加</button>
+            </form>
+            <hr>
+            <ul>
+                <li th:each="task : ${tasks}">
+                    <span th:text="${task.id}"></span>: 
+                    <span th:if="${task.isCompleted}">[完了]</span>
+                    <span th:unless="${task.isCompleted}">[未完了]</span>
+                    <span th:text="${task.title}"></span>
+                    <span th:if="${task.dueDate != null}" style="color: #ef4444; font-size: 0.9em;">
+                        (期日: <span th:text="${task.dueDate}"></span>)
+                    </span>
+                    
+                    <form action="/complete" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${task.id}">
+                        <button type="submit" th:disabled="${task.isCompleted}">完了</button>
+                    </form>
+                    <form action="/delete" method="post" style="display:inline;">
+                        <input type="hidden" name="id" th:value="${task.id}">
+                        <button type="submit">削除</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
 
-	<form action="/add" method="post">
-	        <input type="text" name="title" placeholder="新しいタスクを入力" required>
-	        <input type="date" name="dueDate" required>
-	        <button type="submit">追加</button>
-	    </form>
-	    <hr>
+        <div class="sidebar">
+            <div class="cal-header" th:text="${currentYear} + '年 ' + ${currentMonth} + '月'"></div>
+            <div class="cal-grid">
+                <div class="day-name">日</div><div class="day-name">月</div>
+                <div class="day-name">火</div><div class="day-name">水</div>
+                <div class="day-name">木</div><div class="day-name">金</div>
+                <div class="day-name">土</div>
 
-	    <ul>
-	        <li th:each="task : ${tasks}">
-	            <span th:text="${task.id}">1</span>: 
-	            <span th:if="${task.isCompleted}">[完了]</span>
-	            <span th:unless="${task.isCompleted}">[未完了]</span>
-	            <span th:text="${task.title}">タスク名</span>
-	            
-	            <span th:if="${task.dueDate != null}" style="margin-left: 10px; color: #ff6666;">
-	                (期日: <span th:text="${task.dueDate}"></span>)
-	            </span>
-	            <form action="/complete" method="post" style="display:inline;">
-	                <input type="hidden" name="id" th:value="${task.id}">
-	                <button type="submit" th:disabled="${task.isCompleted}">完了にする</button>
-	            </form>
-	            <form action="/delete" method="post" style="display:inline;">
-	                <input type="hidden" name="id" th:value="${task.id}">
-	                <button type="submit">削除</button>
-	            </form>
-	        </li>
-	    </ul>
+                <div th:each="day : ${calendarDays}" 
+                     class="day-cell"
+                     th:classappend="${day == todayDay ? 'today' : ''} + ' ' + ${hasTaskMap.containsKey(day) ? 'has-task' : ''}">
+                    <span th:if="${day != 0}" th:text="${day}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

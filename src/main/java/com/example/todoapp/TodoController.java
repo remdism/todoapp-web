@@ -1,6 +1,9 @@
 package com.example.todoapp;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,22 +14,41 @@ import org.springframework.web.bind.annotation.RequestParam;
 @Controller
 public class TodoController {
 
-    // データベースを操作するRepositoryを用意
     private final TaskRepository repository;
-
-    // コンストラクタでRepositoryをセット
-    public TodoController(TaskRepository repository) {
+    private final CalendarService calendarService;
+    public TodoController(TaskRepository repository, CalendarService calendarService) {
         this.repository = repository;
+        this.calendarService = calendarService;
     }
 
-    // トップページを表示する処理
     @GetMapping("/")
     public String index(Model model) {
-        // DBからタスクを全件取得
-        model.addAttribute("tasks", repository.findAll());
+        List<Task> tasks = repository.findAll();
+        model.addAttribute("tasks", tasks);
+        LocalDate today = LocalDate.now();
+        int year = today.getYear();
+        int month = today.getMonthValue();
+        List<Integer> calendarDays = calendarService.getCalendarDays(year, month);
+
+        // 今月のタスクのうち、期日が設定されている「日付」を抽出して青丸をつける
+        Map<Integer, Boolean> hasTaskMap = tasks.stream()
+            .filter(t -> t.getDueDate() != null && t.getDueDate().getYear() == year && t.getDueDate().getMonthValue() == month)
+            .collect(Collectors.toMap(
+                t -> t.getDueDate().getDayOfMonth(),
+                t -> true,
+                (existing, replacement) -> true // 同じ日に複数タスクがあってもOK
+            ));
+
+        // 画面へ送信
+        model.addAttribute("currentYear", year);
+        model.addAttribute("currentMonth", month);
+        model.addAttribute("todayDay", today.getDayOfMonth());
+        model.addAttribute("calendarDays", calendarDays);
+        model.addAttribute("hasTaskMap", hasTaskMap);
+
         return "index";
     }
-
+    
     // タスクを追加する処理
     @PostMapping("/add")
     public String addTask(@RequestParam String title, @RequestParam LocalDate dueDate) {
