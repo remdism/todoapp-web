@@ -1,5 +1,7 @@
 package com.example.todoapp;
 
+import java.time.LocalDate;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,14 +29,9 @@ public class TodoController {
 
     // タスクを追加する処理
     @PostMapping("/add")
-    public String addTask(@RequestParam String title) {
-        // 画面から送られてきた title を使って新しいTaskを作成
-        Task newTask = new Task(title, false);
-        
-        // DBに保存
+    public String addTask(@RequestParam String title, @RequestParam LocalDate dueDate) {
+        Task newTask = new Task(title, false, dueDate);
         repository.save(newTask);
-        
-        // 保存が終わったら、トップページ（/）に自動で移動させる
         return "redirect:/";
     }
     

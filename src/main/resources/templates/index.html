@@ -7,24 +7,27 @@
 <body>
     <h1>=== Web版 ToDoアプリ ===</h1>
 
-    <form action="/add" method="post">
-        <input type="text" name="title" placeholder="新しいタスクを入力" required>
-        <button type="submit">追加</button>
-    </form>
-    <hr>
+	<form action="/add" method="post">
+	        <input type="text" name="title" placeholder="新しいタスクを入力" required>
+	        <input type="date" name="dueDate" required>
+	        <button type="submit">追加</button>
+	    </form>
+	    <hr>
 
-	<ul>
+	    <ul>
 	        <li th:each="task : ${tasks}">
 	            <span th:text="${task.id}">1</span>: 
 	            <span th:if="${task.isCompleted}">[完了]</span>
 	            <span th:unless="${task.isCompleted}">[未完了]</span>
 	            <span th:text="${task.title}">タスク名</span>
 	            
+	            <span th:if="${task.dueDate != null}" style="margin-left: 10px; color: #ff6666;">
+	                (期日: <span th:text="${task.dueDate}"></span>)
+	            </span>
 	            <form action="/complete" method="post" style="display:inline;">
 	                <input type="hidden" name="id" th:value="${task.id}">
 	                <button type="submit" th:disabled="${task.isCompleted}">完了にする</button>
 	            </form>
-	            
 	            <form action="/delete" method="post" style="display:inline;">
 	                <input type="hidden" name="id" th:value="${task.id}">
 	                <button type="submit">削除</button>
