@@ -1,6 +1,7 @@
 package com.example.todoapp;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,29 +23,52 @@ public class TodoController {
     }
 
     @GetMapping("/")
-    public String index(Model model) {
+    // URLから year と month を受け取る
+    public String index(@RequestParam(name = "year", required = false) Integer year,
+                        @RequestParam(name = "month", required = false) Integer month,
+                        Model model) {
+        
         List<Task> tasks = repository.findAll();
         model.addAttribute("tasks", tasks);
-        LocalDate today = LocalDate.now();
-        int year = today.getYear();
-        int month = today.getMonthValue();
-        List<Integer> calendarDays = calendarService.getCalendarDays(year, month);
 
-        // 今月のタスクのうち、期日が設定されている「日付」を抽出して青丸をつける
+        LocalDate today = LocalDate.now();
+        
+        // 指定がなければ「今月」にする
+        int targetYear = (year != null) ? year : today.getYear();
+        int targetMonth = (month != null) ? month : today.getMonthValue();
+
+        // 前月と翌月の計算
+        YearMonth currentYM = YearMonth.of(targetYear, targetMonth);
+        YearMonth prevYM = currentYM.minusMonths(1);
+        YearMonth nextYM = currentYM.plusMonths(1);
+
+        // 指定された月のカレンダー配列を取得
+        List<Integer> calendarDays = calendarService.getCalendarDays(targetYear, targetMonth);
+
+        // タスクの抽出も、表示している月に合わせる
         Map<Integer, Boolean> hasTaskMap = tasks.stream()
-            .filter(t -> t.getDueDate() != null && t.getDueDate().getYear() == year && t.getDueDate().getMonthValue() == month)
+            .filter(t -> t.getDueDate() != null && t.getDueDate().getYear() == targetYear && t.getDueDate().getMonthValue() == targetMonth)
             .collect(Collectors.toMap(
                 t -> t.getDueDate().getDayOfMonth(),
                 t -> true,
-                (existing, replacement) -> true // 同じ日に複数タスクがあってもOK
+                (existing, replacement) -> true
             ));
 
-        // 画面へ送信
-        model.addAttribute("currentYear", year);
-        model.addAttribute("currentMonth", month);
-        model.addAttribute("todayDay", today.getDayOfMonth());
+        // 今日の日付ハイライトは、「表示している月が今月の場合のみ」数字をセットする
+        int todayDay = (today.getYear() == targetYear && today.getMonthValue() == targetMonth) ? today.getDayOfMonth() : 0;
+
+        // 画面へデータを送信
+        model.addAttribute("currentYear", targetYear);
+        model.addAttribute("currentMonth", targetMonth);
+        model.addAttribute("todayDay", todayDay);
         model.addAttribute("calendarDays", calendarDays);
         model.addAttribute("hasTaskMap", hasTaskMap);
+
+        // HTMLの◀▶ボタンで使うための、前月・翌月のデータを送る
+        model.addAttribute("prevYear", prevYM.getYear());
+        model.addAttribute("prevMonth", prevYM.getMonthValue());
+        model.addAttribute("nextYear", nextYM.getYear());
+        model.addAttribute("nextMonth", nextYM.getMonthValue());
 
         return "index";
     }

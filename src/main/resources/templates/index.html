@@ -4,19 +4,26 @@
     <meta charset="UTF-8">
     <title>ToDoアプリ</title>
     <style>
+        /* レイアウトとカレンダーの見た目を整えるCSS */
         .app-container { display: flex; gap: 40px; margin-top: 20px; }
         .main-content { flex: 1; }
         .sidebar { width: 300px; background: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0; height: fit-content; }
-        .cal-header { text-align: center; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }
+        
+        /* 月めくりカレンダーのヘッダー */
+        .cal-header { display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #1e293b; }
+        .cal-arrow { text-decoration: none; color: #3b82f6; font-size: 24px; }
+        
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
         .day-name { font-weight: bold; color: #64748b; padding-bottom: 10px; }
         .day-cell { height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; position: relative; color: #334155; }
+        
+        /* 今日の日付とタスクありのインジケーター */
         .today { background: #3b82f6; color: white; font-weight: bold; }
         .has-task::after {
             content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
             width: 6px; height: 6px; background-color: #ef4444; border-radius: 50%;
         }
-        .today.has-task::after { background-color: white; /* 今日のマスにタスクがある場合は丸を白に */ }
+        .today.has-task::after { background-color: white; }
     </style>
 </head>
 <body>
@@ -31,16 +38,17 @@
             </form>
             <hr>
             <ul>
-                <li th:each="task : ${tasks}">
+                <li th:each="task : ${tasks}" style="margin-bottom: 10px;">
                     <span th:text="${task.id}"></span>: 
                     <span th:if="${task.isCompleted}">[完了]</span>
                     <span th:unless="${task.isCompleted}">[未完了]</span>
                     <span th:text="${task.title}"></span>
-                    <span th:if="${task.dueDate != null}" style="color: #ef4444; font-size: 0.9em;">
+                    
+                    <span th:if="${task.dueDate != null}" style="color: #ef4444; font-size: 0.9em; margin-left: 10px;">
                         (期日: <span th:text="${task.dueDate}"></span>)
                     </span>
                     
-                    <form action="/complete" method="post" style="display:inline;">
+                    <form action="/complete" method="post" style="display:inline; margin-left: 10px;">
                         <input type="hidden" name="id" th:value="${task.id}">
                         <button type="submit" th:disabled="${task.isCompleted}">完了</button>
                     </form>
@@ -53,7 +61,14 @@
         </div>
 
         <div class="sidebar">
-            <div class="cal-header" th:text="${currentYear} + '年 ' + ${currentMonth} + '月'"></div>
+            <div class="cal-header">
+                <a th:href="@{/(year=${prevYear}, month=${prevMonth})}" class="cal-arrow">◀</a>
+                
+                <span th:text="${currentYear} + '年 ' + ${currentMonth} + '月'"></span>
+                
+                <a th:href="@{/(year=${nextYear}, month=${nextMonth})}" class="cal-arrow">▶</a>
+            </div>
+            
             <div class="cal-grid">
                 <div class="day-name">日</div><div class="day-name">月</div>
                 <div class="day-name">火</div><div class="day-name">水</div>
