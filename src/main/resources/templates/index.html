@@ -6,6 +6,22 @@
 </head>
 <body>
     <h1>=== Web版 ToDoアプリ ===</h1>
-    <p>Spring Bootでの画面表示に成功しました！</p>
+
+    <form action="/add" method="post">
+        <input type="text" name="title" placeholder="新しいタスクを入力" required>
+        <button type="submit">追加</button>
+    </form>
+    <hr>
+
+    <ul>
+        <li th:each="task : ${tasks}">
+            <span th:text="${task.id}">1</span>: 
+            
+            <span th:if="${task.isCompleted}">[完了]</span>
+            <span th:unless="${task.isCompleted}">[未完了]</span>
+            
+            <span th:text="${task.title}">タスク名</span>
+        </li>
+    </ul>
 </body>
 </html>
